@@ -14,3 +14,10 @@ steps:
     command: 'buildAndPush'
     Dockerfile: '**/dockerfile'
     tags: 'version1'
+
+- task: KubernetesManifest@1
+  inputs:
+    action: 'deploy'
+    connectionType: 'kubernetesServiceConnection'
+    kubernetesServiceConnection: 'AKS DevOps Project Cluster'
+    manifests: 'application-manifest.yaml'
