@@ -129,6 +129,14 @@ Now retrieve the kubeconfig file via: `az aks get-credentials --resource-group <
 ## Kubernetes deployment to AKS
 To create and deploy the kubernetes cluster to your provisioned AKS resources on Azure, run `kubectl apply -f <absolute file path to manifest.yaml file>`. To check this has worked and view all pods, run `kubectl get pods -w`. Finally, to access the webapplication, port forward into the application using: `kubectl port-forward flask-app-deployment-67f878f7db-g2z76 5001:5001` and going to this address in your web browser: http://127.0.0.1:5000
 
+## CI/CD Pipeline (Azure DevOps)
+A CI/CD pipeline has been set up on Azure DevOps. This is stored under the project "APD DevOps Pipeline" This includes the creation of a pipeline (defined in `azure-pipelines.yaml`) and three connections to:
+* GitHub (allows certain tasks to be triggered based on activities in GitHub)
+* Docker Hub (automatically builds the docker image from the dockerfile and pushes to Docker Hub on new pushes to main)
+* Kubernetes - AKS (automatically deploys kubernetes cluster from the deployment manifest file on new pushes to main)
+
+This pipeline has been validate on Azure DevOps. Further, the AKS cluster has been accessed to ensure that it is working correctly and the dockerfile has been downloaded from DockerHub and ran to ensure that this is updated correctly.
+
 
 ### Delivery Date
 Allows the specification of a delivery date when adding an order. This ensures that when an order is created, a delivery date can be tagged to the order.
