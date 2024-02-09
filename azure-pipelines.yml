@@ -15,7 +15,7 @@ steps:
     containerRegistry: 'docker account connection'
     repository: 'doughertyaaron/web-app-devops-project'
     command: 'buildAndPush'
-    Dockerfile: '**/Dockerfile'
+    Dockerfile: '**/dockerfile'
     tags: 'version1'
 
 - script: |
