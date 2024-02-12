@@ -137,6 +137,39 @@ A CI/CD pipeline has been set up on Azure DevOps. This is stored under the proje
 
 This pipeline has been validate on Azure DevOps. Further, the AKS cluster has been accessed to ensure that it is working correctly and the dockerfile has been downloaded from DockerHub and ran to ensure that this is updated correctly.
 
+## AKS Cluster Monitoring
+AKS cluster monitoring is handled within Azure AKS through the creation of dashboards, logs and alarms. These are set up following enabling Container Insights.
+
+The required process to achieve this on any aks cluster is as follows:
+
+1. Run `az aks update -g {resource-group-name} -n {aks-cluster-name} --enable-managed-identity` using the CLI to enable IAM on the cluster
+2. Under your subscription associated with your cluster, add IAM permissions under Acess Control  to make changes to Insights and monitoring. This is achieved via 'Add role assignment' for three roles (see below). Ensure to assign the role to you Service Principal which set up the cluster.
+    * Monitoring Metrics Publisher (Grants permission to publish monitoring metrics to Azure Monitor. This is important for applications and services that need to push metrics to Azure Monitor)
+    * Monitoring Contributor (Grants broad permissions for monitoring and managing monitoring resources in Azure, including permissions to read and write monitoring settings, access monitoring data and manage monitoring resources)
+    * Log Analytics Contributor (Grants permissions to read and write access to Log Analytics workspaces. Includes permissions to query and analyze log data stored in those workspaces)
+3. In your cluster in AKS, under 'Monitoring' -> 'Insights' -> 'Configure Monitoring', select 'Enable container logs'
+
+A dashboard showing 4 charts was created by creating, configuring and saving the relevant charts in Metrics Explorer. These charts include:
+
+* Average Node CPU Usage: This chart allows you to track the CPU usage of your AKS cluster's nodes. Monitoring CPU usage helps ensure efficient resource allocation and detect potential performance issues.
+* Average Pod Count: This chart displays the average number of pods running in your AKS cluster. It's a key metric for evaluating the cluster's capacity and workload distribution.
+* Used Disk Percentage: Monitoring disk usage is critical to prevent storage-related issues. This chart helps you track how much disk space is being utilized.
+* Bytes Read and Written per Second: Monitoring data I/O is crucial for identifying potential performance bottlenecks. This chart provides insights into data transfer rates.
+
+In the cluster, under 'Logs', the following queries were run and saved under the Containers category and under the same label:
+
+* Average Node CPU Usage Percentage per Minute: This configuration captures data on node-level usage at a granular level, with logs recorded per minute
+* Average Node Memory Usage Percentage per Minute: Similar to CPU usage, tracking memory usage at node level allows you to detect memory-related performance concerns and efficiently allocate resources
+* Pods Counts with Phase: This log configuration provides information on the count of pods with different phases, such as Pending, Running, or Terminating. It offers insights into pod lifecycle management and helps ensure the cluster's workload is appropriately distributed.
+* Find Warning Value in Container Logs: By configuring Log Analytics to search for warning values in container logs, you proactively detect issues or errors within your containers, allowing for prompt troubleshooting and issues resolution
+* Monitoring Kubernetes Events: Monitoring Kubernetes events, such as pod scheduling, scaling activities, and errors, is essential for tracking the overall health and stability of the cluster
+
+Finally, three alert rules were created and set to an alarm which automatically emails the relevant DevOps engineer if certain conditions are broken. These alerts are:
+
+* If the disk percentage in the AKS cluster exceeds 90% (checking every 5 minutes with a loopback period of 15 minutes)
+* If the CPU usage or memory working set percentage exceed 80% (checking every minute with a loopback period of 5 minutes)
+
+The dashboard, logs and alerts allow the monitoring of the health of the AKS cluster. Specifically, these metrics inform the user whether the application is coming under strain and may need additional nodes/compute resources, an increase in shared memory or an increase of fallback instances should the traffic become too much, the application start to perform too slowly or come too close to crashing.
 
 ### Delivery Date
 Allows the specification of a delivery date when adding an order. This ensures that when an order is created, a delivery date can be tagged to the order.
