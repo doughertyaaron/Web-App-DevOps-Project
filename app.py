@@ -15,10 +15,10 @@ key_vault_url = 'https://aaron-d-devops-key-vault.vault.azure.net/'
 credential = ManagedIdentityCredential()
 secret_client = SecretClient(vault_url=key_vault_url, credential=credential)
 # Access the secret values from Key Vault
-server = secret_client.get_secret('devops-project-server-name')
-database = secret_client.get_secret('devops-project-database-name')
-username = secret_client.get_secret('devops-project-database-username')
-password = secret_client.get_secret('devops-project-database-password')
+server = secret_client.get_secret('devops-project-server-name').value
+database = secret_client.get_secret('devops-project-database-name').value
+username = secret_client.get_secret('devops-project-database-username').value
+password = secret_client.get_secret('devops-project-database-password').value
 driver = '{ODBC Driver 18 for SQL Server}'
 
 # Create the connection string
