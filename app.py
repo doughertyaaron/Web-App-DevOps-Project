@@ -9,12 +9,17 @@ import os
 # Initialise Flask App
 app = Flask(__name__)
 
-# database connection 
-server = 'devops-project-server.database.windows.net'
-database = 'orders-db'
-username = 'maya'
-password = 'AiCore1237'
-driver= '{ODBC Driver 18 for SQL Server}'
+# Azure key vault setup
+key_vault_url = 'https://aaron-d-devops-key-vault.vault.azure.net/'
+# Set up Azure Key Vault client with Managed Identity
+credential = ManagedIdentityCredential()
+secret_client = SecretClient(vault_url=key_vault_url, credential=credential)
+# Access the secret values from Key Vault
+server = secret_client.get_secret('devops-project-server-name')
+database = secret_client.get_secret('devops-project-database-name')
+username = secret_client.get_secret('devops-project-database-username')
+password = secret_client.get_secret('devops-project-database-password')
+driver = '{ODBC Driver 18 for SQL Server}'
 
 # Create the connection string
 connection_string=f'Driver={driver};\
