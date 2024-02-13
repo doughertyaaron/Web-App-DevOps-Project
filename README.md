@@ -9,6 +9,13 @@ Welcome to the Web App DevOps Project repo! This application allows you to effic
 - [Technology Stack](#technology-stack)
 - [Contributors](#contributors)
 - [License](#license)
+- [Containerisation](#containerisation)
+- [IAC](#iac)
+- [Kubernetes deployment to AKS](#kubernetes-deployment-to-aks)
+- [CI/CD Pipeline (Azure DevOps)](#cicd-pipeline-azure-devops)
+- [AKS Cluster Monitoring](#aks-cluster-monitoring)
+- [Azure Key Vault](#azure-key-vault)
+- [End-to-End Testing](#end-to-end-testing)
 
 ## Features
 
@@ -25,6 +32,8 @@ Welcome to the Web App DevOps Project repo! This application allows you to effic
 ![Screenshot 2023-08-31 at 15 49 26](https://github.com/maya-a-iuga/Web-App-DevOps-Project/assets/104773240/83236d79-6212-4fc3-afa3-3cee88354b1a)
 
 - **Data Validation:** Ensure data accuracy and completeness with required fields, date restrictions, and card number validation.
+
+- **Delivery Date:** Allows the specification of a delivery date when adding an order. This ensures that when an order is created, a delivery date can be tagged to the order.
 
 ## Getting Started
 
@@ -56,6 +65,7 @@ To run the application, you simply need to run the `app.py` script in this repos
 ## Contributors 
 
 - [Maya Iuga]([https://github.com/yourusername](https://github.com/maya-a-iuga))
+- [Aaron Dougherty]([https://github.com/yourusername](https://github.com/doughertyaaron))
 
 ## License
 
@@ -171,5 +181,34 @@ Finally, three alert rules were created and set to an alarm which automatically 
 
 The dashboard, logs and alerts allow the monitoring of the health of the AKS cluster. Specifically, these metrics inform the user whether the application is coming under strain and may need additional nodes/compute resources, an increase in shared memory or an increase of fallback instances should the traffic become too much, the application start to perform too slowly or come too close to crashing.
 
-### Delivery Date
-Allows the specification of a delivery date when adding an order. This ensures that when an order is created, a delivery date can be tagged to the order.
+## Azure Key Vault
+This application requires a number of credentials to access the backend database, including the name of the server, the name of the database and the username and the password to log in. To prevent this being hard coded into the app.py file, these are saved in Azure Key Vault as secrets and accessed using the Azure Python libraries (azure-identity and azure-keyvault-secrets).
+
+The key vault was created in "Key vaults" on Azure and the secrets were added under the "Secrets" tab under "Objects". Prior to creating any secrets, the Key Vault Administrator role was added to the Microsoft Entra ID user in order to grant the necessary permissions for managing secrets within the Key Vault. These roles included:
+
+* Key Vault Administrator: The highest level of access, the Key Vault Administrator role grants full control over the Key Vault. Administrators can manage access policies, configure advanced settings, and perform any operation within the Key Vault.
+
+* Key Vault Contributor: Key Vault Contributors have broad permissions within the Key Vault, allowing them to manage all aspects except for access policies and advanced settings. They can add, update, and delete secrets, keys, and certificates.
+
+* Key Vault Reader: Readers have read-only access to the Key Vault. They can view configurations, secrets, and certificates but are unable to make modifications.
+
+To then allow AKS to interact with the Key Vault and access the required secrets, user managed identity for the AKS has been enabled. First, a user-assigned managed identity was created by running `az identity create -g {existing resource group to manage} -n {name of managed identity to create}`. Then, the AKS resource to be managed can be updated to add this identity: `az aks update --resource-group <resource group> --name <aks resource name> --enable-managed-identity`. Alternatively, not specifying the identity will automatically create and assign a system-assigned managed identity. The primary differences are detailed further below.
+
+Finally, Role-Based Action Control (RBAC) has been granted to the AKS cluster. RBAC is a critical component of Azure's security, providing a structured approach to managing permissions. RBAC ensures that users, services, and applications have precisely the required level of access, reducing the risk of unauthorized actions and enhancing overall security. The Key Vault Secrets Officer role is assigned to the Managed Identity. This role provides permissions to read, list, set and delete secrets, certificates, and keys within the specified Azure Key Vault. The CLI command used was:
+
+`az role assignment create --role "Key Vault Secrets Officer" \ --assignee <managed-identity-client-id> \ --scope /subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.KeyVault/vaults/{key-vault-name}`
+
+
+### Managed Identity Types
+1. System-assigned Managed Identity: When enabling a system-assigned managed identity:
+    * Created directly on specific Azure resources (e.g., Virtual Machines or Azure App Service). Only the specified resource can use this managed identity to request tokens from Microsoft Entra ID.
+    * A unique service principal is created in Microsoft Entra ID, tied to the Azure resource's lifecycle
+    * The identity is automatically deleted when the associated Azure resource is deleted
+2. User-assigned Managed Identity: When enabling an user-assigned managed identity:
+    * Created independently as a standalone Azure resource
+    * A dedicated service principal is established in Microsoft Entra ID, managed separately
+    * This identity persists independently of the resources using it and must be explicitly deleted
+    * Can be shared across multiple Azure resources, offering flexibility in identity management
+
+## End-to-End Testing
+End-to-End testing has been completed through checking the pipeline has run successfully after pushing the final code changes to GitHub and portforwarding using Kubectl to access the deployed cluster locally and checking it is working as normal with no errors. Automated testing could also be added to GitHub actions or Azure DevOps in the future.
